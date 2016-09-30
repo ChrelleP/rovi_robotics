@@ -1,4 +1,4 @@
-CC=clang++ #Compiler
+CC=clang-3.5 #Compiler
 CFLAGS= -c -std=c++11   -fPIE   #Compiler Flags
 DEFINES=-DENABLE_DELETE
 INCPATH=
