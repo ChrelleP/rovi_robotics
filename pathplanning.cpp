@@ -133,12 +133,12 @@ int main(int argc, char** argv) {
 	float shortest_length = 999;
 	ofstream test_file;
 
-	for (float i = 0.1; i <= 1.0; i+=0.1) {
+	for (float i = 0.01; i <= 0.1; i+=0.02) {
 		cout << "\nTest epsilon: " << i << endl;
 		test_file.open("./../data/"+to_string(i)+"_eps.txt");
 		test_file << "length\ttime\n";
 
-		for (int j = 1; j <= 10; j++)
+		for (int j = 1; j <= 5; j++)
 		{
 			cout << j << endl;
 			t.resetAndResume();
@@ -156,6 +156,7 @@ int main(int argc, char** argv) {
 					shortest_path = path;
 				}
 			}
+			path.clear();
 		}
 		test_file.close();
 	}
