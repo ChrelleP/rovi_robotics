@@ -18,7 +18,7 @@ using namespace rw::trajectory;
 using namespace rwlibs::pathplanners;
 using namespace rwlibs::proximitystrategies;
 
-#define MAXTIME 15.
+#define MAXTIME 30.
 
 void makeLuaFile(QPath &path)
 {
@@ -114,7 +114,9 @@ int main(int argc, char** argv) {
 
 	// Initialze the analyser
 	PathAnalyzer analysis(device, state);
-	PathAnalyzer::CartesianAnalysis result;
+	PathAnalyzer::CartesianAnalysis result_cartesian;
+	PathAnalyzer::JointSpaceAnalysis result_config;
+	QMetric::Ptr metric_config = MetricFactory::makeManhattan<Q>();
 
 	double epsilon = 0.1;
 	QToQPlanner::Ptr planner = RRTPlanner::makeQToQPlanner(constraint, sampler, metric, epsilon, RRTPlanner::RRTConnect);
@@ -133,26 +135,27 @@ int main(int argc, char** argv) {
 	float shortest_length = 999;
 	ofstream test_file;
 
-	for (float i = 0.01; i <= 0.1; i+=0.02) {
+	for (float i = 0.01; i <= 0.2; i+=0.01) {
 		cout << "\nTest epsilon: " << i << endl;
 		test_file.open("./../data/"+to_string(i)+"_eps.txt");
-		test_file << "length\ttime\n";
+		test_file << "length\tconfig\ttime\n";
 
-		for (int j = 1; j <= 5; j++)
+		for (int j = 1; j <= 40; j++)
 		{
 			cout << j << endl;
 			t.resetAndResume();
 			planner->query(from,to,path,MAXTIME);
 			t.pause();
-			result = analysis.analyzeCartesian(path, TCP);
+			result_cartesian = analysis.analyzeCartesian(path, TCP);
+			result_config = analysis.analyzeJointSpace(path, metric_config);
 			if (t.getTime() >= MAXTIME) {
 				test_file << "NaN" << "\t" << t.getTime() << "\n";
 			}
 			else
 			{
-				test_file << result.length << "\t" << t.getTime() << "\n";
-				if (result.length > 0 && result.length < shortest_length) {
-					shortest_length = result.length;
+				test_file << result_cartesian.length << "\t" << result_config.length << "\t" << t.getTime() << "\n";
+				if (result_cartesian.length > 0 && result_cartesian.length < shortest_length) {
+					shortest_length = result_cartesian.length;
 					shortest_path = path;
 				}
 			}
@@ -162,8 +165,8 @@ int main(int argc, char** argv) {
 	}
 
 	cout << "\n\nShortest path was of node-length " << shortest_path.size() << endl;
-	result = analysis.analyzeCartesian(shortest_path, TCP);
-	cout << "The TCP length was " << result.length << endl;
+	result_cartesian = analysis.analyzeCartesian(shortest_path, TCP);
+	cout << "The TCP length was " << result_cartesian.length << endl;
 	cout << "This path is written to the luafile!" << endl;
 	makeLuaFile(shortest_path);
 	cout << "Program done." << endl;
