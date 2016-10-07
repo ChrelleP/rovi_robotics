@@ -135,7 +135,7 @@ int main(int argc, char** argv) {
 	float shortest_length = 999;
 	ofstream test_file;
 
-	for (float i = 0.01; i <= 0.2; i+=0.01) {
+	for (float i = 0.19; i <= 0.21; i+=0.01) {
 		cout << "\nTest epsilon: " << i << endl;
 		test_file.open("./../data/"+to_string(i)+"_eps.txt");
 		test_file << "length\tconfig\ttime\n";
