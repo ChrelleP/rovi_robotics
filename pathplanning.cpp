@@ -22,6 +22,9 @@ using namespace rwlibs::proximitystrategies;
 
 void makeLuaFile(QPath &path)
 {
+	/*
+	*  Function used to generate a luascipt for the given path
+	*/
 	ofstream luafile;
 	luafile.open("LuaPath.txt");
 	luafile << "wc = rws.getRobWorkStudio():getWorkCell()\n"
@@ -45,7 +48,7 @@ void makeLuaFile(QPath &path)
 						 "end\n\n\n"
 						 "setQ({-3.142, -0.827, -3.002, -3.143, 0.099, -1.573})\n"
 						 "attach(bottle,gripper)\n"	<< endl;
-
+	// For loop that inserts the correct path of configurations needed to reach the goal
 	for (QPath::iterator value = path.begin(); value < path.end(); value++) {
 			luafile << "setQ({"<< (*value)[0];
 
@@ -80,12 +83,14 @@ bool checkCollisions(Device::Ptr device, const State &state, const CollisionDete
 }
 
 int main(int argc, char** argv) {
+	// Initialize random seed
 	rw::math::Math::seed();
+
+	// Initialize the devices and objects used during the simulation
 	const string wcFile = "./../Kr16WallWorkCell/Scene.wc.xml";
 	const string deviceName = "KukaKr16";
 	const string TCPName = "ToolMount";
 	const string objectName = "Bottle";
-
 	WorkCell::Ptr wc = WorkCellLoader::Factory::load(wcFile);
 	Device::Ptr device = wc->findDevice(deviceName);
 	Frame* object = wc->findFrame(objectName);
@@ -94,53 +99,71 @@ int main(int argc, char** argv) {
 		cerr << "Device: " << deviceName << " not found!" << endl;
 		return 0;
 	}
+
+	// Get the state
 	State state = wc->getDefaultState();
 
 	// Grip the object (bottle)
 	Kinematics::gripFrame(object, TCP, state);
 
+	// Initialize collision detector
 	CollisionDetector detector(wc, ProximityStrategyFactory::makeDefaultCollisionStrategy());
 	PlannerConstraint constraint = PlannerConstraint::make(&detector,device,state);
 
-	/** More complex way: allows more detailed definition of parameters and methods */
+	// More complex way: allows more detailed definition of parameters and methods
 	QSampler::Ptr sampler = QSampler::makeConstrained(QSampler::makeUniform(device),constraint.getQConstraintPtr());
 	QMetric::Ptr metric = MetricFactory::makeEuclidean<Q>();
 
-	// Initialze the analyser
+	// Initialze the analysers
 	PathAnalyzer analysis(device, state);
 	PathAnalyzer::CartesianAnalysis result_cartesian;
 	PathAnalyzer::JointSpaceAnalysis result_config;
 	QMetric::Ptr metric_config = MetricFactory::makeManhattan<Q>();
 
+	// Set the start and goal configurations
 	Q from(6,-3.142,-0.827,-3.002,-3.143,0.099,-1.573);
 	Q to(6,1.571,0.006,0.030,0.153,0.762,4.490);
 
+	// Check is the start and goal is in freespace
 	if (!checkCollisions(device, state, detector, from))
 		return 0;
 	if (!checkCollisions(device, state, detector, to))
 		return 0;
 
-	cout << "Planning from " << from << " to " << to << endl;
+	// Create paths to hold the generated paths
 	QPath path, shortest_path;
-	Timer t;
 	float shortest_length = 999;
+	// Initialize the timer
+	Timer t;
+	// Initialize the file to hold the test data
 	ofstream test_file;
 
+	// Start the planner test with different epsilons.
+	cout << "Planning from " << from << " to " << to << endl;
 	for (float i = 0.05; i <= 1; i+=0.05) {
+		// Make new planner with the new epsilon
 		QToQPlanner::Ptr planner = RRTPlanner::makeQToQPlanner(constraint, sampler, metric, i, RRTPlanner::RRTConnect);
 		cout << "\nTest epsilon: " << i << endl;
 		test_file.open("./../data/"+to_string(i)+"_eps.txt");
 		test_file << "length\tconfig\ttime\n";
 
+		// Run the test 100 times for the given epsilon
 		for (int j = 1; j <= 100; j++)
 		{
 			cout << j << endl;
+
+			// Time the planenr
 			t.resetAndResume();
 			planner->query(from,to,path,MAXTIME);
 			t.pause();
+
+			// Extract the results for the path lengths
 			result_cartesian = analysis.analyzeCartesian(path, TCP);
 			result_config = analysis.analyzeJointSpace(path, metric_config);
-			if (t.getTime() >= MAXTIME) {
+
+			// If the time is over the allowed time, then write NaN in the test file.
+			// Else write the actual results to the test file.
+			if (t.getTime() >= MAXTIME || path_collision(device, state, detector, path)) {
 				test_file << "NaN" << "\t" << "NaN" << "\t" << t.getTime() << "\n";
 			}
 			else
@@ -151,15 +174,20 @@ int main(int argc, char** argv) {
 					shortest_path = path;
 				}
 			}
+			// Clear the path for the next test.
 			path.clear();
 		}
+		// Close the test file and end the tests
 		test_file.close();
 	}
 
+	// Tell the user about the shortest path
 	cout << "\n\nShortest path was of node-length " << shortest_path.size() << endl;
 	result_cartesian = analysis.analyzeCartesian(shortest_path, TCP);
 	cout << "The TCP length was " << result_cartesian.length << endl;
 	cout << "This path is written to the luafile!" << endl;
+
+	// Make lua file from the shortest path so that it can be visualized
 	makeLuaFile(shortest_path);
 	cout << "Program done." << endl;
 
