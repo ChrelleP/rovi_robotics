@@ -4,7 +4,7 @@ clc; clear;
 
 % Variables used for loading data
 basename = '.000000_eps.txt';
-folder = './data/';
+folder = './old_data/';
 delim = '\t';
 header = 1;
 
@@ -31,9 +31,6 @@ for i = 3:1:10
     time_matrix     = [time_matrix, time_data];
     config_matrix   = [config_matrix, config_data];
 end
-
-% Normal check
-histogram(length_matrix(:,1))
 
 % Calculate mu, sigma and CI for euclidean length, time and configuration space length. 
 mu_length       = nanmean(length_matrix);
@@ -65,29 +62,29 @@ for i = 1:length(CI_time)
     err_time(i)  = (1.96)*(sqrt(sigma_time(i)));  
 end
 
+% Plot the data
 y = 3:1:10;
-subplot(3,1,1)
+
+figure(1)
  plot(y, mu_length); hold on;
  errorbar(y, mu_length, err_length, '.')
  title('Comparison of means for euclidean lengths');
  xlabel('Epsilon')
  ylabel('Length')
-subplot(3,1,2)
+    
+figure(2) 
  plot(y, mu_config); hold on;
  errorbar(y, mu_config, err_config, '.');
  title('Comparison of means for summed joint movement');
  xlabel('Epsilon')
  ylabel('Summed Joint Movement')
-subplot(3,1,3)
+
+figure(3)
  plot(y, mu_time); hold on;
  errorbar(y, mu_time, err_time, '.');
  title('Comparison of means for execution time');
  xlabel('Epsilon')
  ylabel('Time')
 
-figure(2)
- qqplot(length_matrix(4,:))
-
-
 % Clear variables for clearer view
-clearvars basename data file_data filename folder header i delim sample;
+clearvars basename data file_data filename folder header i delim sample y;
