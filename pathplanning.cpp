@@ -102,12 +102,6 @@ int main(int argc, char** argv) {
 	CollisionDetector detector(wc, ProximityStrategyFactory::makeDefaultCollisionStrategy());
 	PlannerConstraint constraint = PlannerConstraint::make(&detector,device,state);
 
-	/** Most easy way: uses default parameters based on given device
-		sampler: QSampler::makeUniform(device)
-		metric: PlannerUtil::normalizingInfinityMetric(device->getBounds())
-		extend: 0.05 */
-	//QToQPlanner::Ptr planner = RRTPlanner::makeQToQPlanner(constraint, device, RRTPlanner::RRTConnect);
-
 	/** More complex way: allows more detailed definition of parameters and methods */
 	QSampler::Ptr sampler = QSampler::makeConstrained(QSampler::makeUniform(device),constraint.getQConstraintPtr());
 	QMetric::Ptr metric = MetricFactory::makeEuclidean<Q>();
@@ -117,9 +111,6 @@ int main(int argc, char** argv) {
 	PathAnalyzer::CartesianAnalysis result_cartesian;
 	PathAnalyzer::JointSpaceAnalysis result_config;
 	QMetric::Ptr metric_config = MetricFactory::makeManhattan<Q>();
-
-	double epsilon = 0.1;
-	QToQPlanner::Ptr planner = RRTPlanner::makeQToQPlanner(constraint, sampler, metric, epsilon, RRTPlanner::RRTConnect);
 
 	Q from(6,-3.142,-0.827,-3.002,-3.143,0.099,-1.573);
 	Q to(6,1.571,0.006,0.030,0.153,0.762,4.490);
@@ -135,7 +126,8 @@ int main(int argc, char** argv) {
 	float shortest_length = 999;
 	ofstream test_file;
 
-	for (float i = 0.19; i <= 0.21; i+=0.01) {
+	for (float i = 0.01; i <= 0.2; i+=0.05) {
+		QToQPlanner::Ptr planner = RRTPlanner::makeQToQPlanner(constraint, sampler, metric, i, RRTPlanner::RRTConnect);
 		cout << "\nTest epsilon: " << i << endl;
 		test_file.open("./../data/"+to_string(i)+"_eps.txt");
 		test_file << "length\tconfig\ttime\n";
