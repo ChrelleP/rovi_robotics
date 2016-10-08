@@ -3,13 +3,8 @@
 clc; clear;
 
 % Variables used for loading data
-<<<<<<< HEAD
 basename = '0000_eps.txt';
 folder = './data/';
-=======
-basename = '.000000_eps.txt';
-folder = './old_data/';
->>>>>>> 662f099ce29748c4f29200665d2c75ff0c2025c0
 delim = '\t';
 header = 1;
 
@@ -18,7 +13,7 @@ length_matrix = [];
 config_matrix = [];
 time_matrix = [];
 
-for i = 0.05:0.05:0.95
+for i = 0.05:0.05:2.0
     % Generate filename and load data
     sample = num2str(i);
     filename = strcat(folder, sample, basename);
@@ -67,15 +62,10 @@ for i = 1:length(CI_time)
     err_time(i)  = (1.96)*(sqrt(sigma_time(i)));  
 end
 
-<<<<<<< HEAD
+
 y = 0.05:0.05:0.95;
-subplot(3,1,1)
-=======
-% Plot the data
-y = 3:1:10;
 
 figure(1)
->>>>>>> 662f099ce29748c4f29200665d2c75ff0c2025c0
  plot(y, mu_length); hold on;
  errorbar(y, mu_length, err_length, '.')
  title('Comparison of means for euclidean lengths');

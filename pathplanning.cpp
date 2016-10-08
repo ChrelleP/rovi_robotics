@@ -137,7 +137,7 @@ int main(int argc, char** argv) {
 
 	// Start the planner test with different epsilons.
 	cout << "Planning from " << from << " to " << to << endl;
-	for (float epsi = 0.05; epsi <= 0.06; epsi+=0.05) {
+	for (float epsi = 0.05; epsi <= 7; epsi+=0.05) {
 		// Make new planner with the new epsilon
 		QToQPlanner::Ptr planner = RRTPlanner::makeQToQPlanner(constraint, sampler, metric, epsi, RRTPlanner::RRTConnect);
 		cout << "\nTest epsilon: " << epsi << endl;
@@ -145,7 +145,7 @@ int main(int argc, char** argv) {
 		test_file << "length\tconfig\ttime\n";
 
 		// Run the test 100 times for the given epsilon (num of samples)
-		for (int j = 1; j <= 3; j++)
+		for (int j = 1; j <= 100; j++)
 		{
 			cout << j << endl;
 
@@ -159,7 +159,6 @@ int main(int argc, char** argv) {
 			result_config = analysis.analyzeJointSpace(path, metric_config);
 
 			// If the time is over the allowed time, then write NaN in the test file.
-			// If the path is in collision, then write NaN in the test file.
 			// Else write the actual results to the test file.
 			if (t.getTimeMs() >= MAXTIME) {
 				test_file << "NaN" << "\t" << "NaN" << "\t" << t.getTimeMs() << "\n";
