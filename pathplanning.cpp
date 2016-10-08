@@ -103,6 +103,13 @@ int main(int argc, char** argv) {
 	// Get the state
 	State state = wc->getDefaultState();
 
+	// Set the start and goal configurations
+	Q from(6,-3.142,-0.827,-3.002,-3.143,0.099,-1.573);
+	Q to(6,1.571,0.006,0.030,0.153,0.762,4.490);
+
+	// Move Robot to start position
+	device->setQ(from, state);
+
 	// Grip the object (bottle)
 	Kinematics::gripFrame(object, TCP, state);
 
@@ -120,16 +127,6 @@ int main(int argc, char** argv) {
 	PathAnalyzer::JointSpaceAnalysis result_config;
 	QMetric::Ptr metric_config = MetricFactory::makeManhattan<Q>();
 
-	// Set the start and goal configurations
-	Q from(6,-3.142,-0.827,-3.002,-3.143,0.099,-1.573);
-	Q to(6,1.571,0.006,0.030,0.153,0.762,4.490);
-
-	// Check is the start and goal is in freespace
-	if (!checkCollisions(device, state, detector, from))
-		return 0;
-	if (!checkCollisions(device, state, detector, to))
-		return 0;
-
 	// Create paths to hold the generated paths
 	QPath path, shortest_path;
 	float shortest_length = 999;
@@ -140,7 +137,7 @@ int main(int argc, char** argv) {
 
 	// Start the planner test with different epsilons.
 	cout << "Planning from " << from << " to " << to << endl;
-	for (float epsi = 0.05; epsi <= 1; epsi+=0.05) {
+	for (float epsi = 0.05; epsi <= 0.06; epsi+=0.05) {
 		// Make new planner with the new epsilon
 		QToQPlanner::Ptr planner = RRTPlanner::makeQToQPlanner(constraint, sampler, metric, epsi, RRTPlanner::RRTConnect);
 		cout << "\nTest epsilon: " << epsi << endl;
@@ -148,7 +145,7 @@ int main(int argc, char** argv) {
 		test_file << "length\tconfig\ttime\n";
 
 		// Run the test 100 times for the given epsilon (num of samples)
-		for (int j = 1; j <= 75; j++)
+		for (int j = 1; j <= 3; j++)
 		{
 			cout << j << endl;
 
