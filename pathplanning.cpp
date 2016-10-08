@@ -18,7 +18,7 @@ using namespace rw::trajectory;
 using namespace rwlibs::pathplanners;
 using namespace rwlibs::proximitystrategies;
 
-#define MAXTIME 120.
+#define MAXTIME 120000
 
 void makeLuaFile(QPath &path)
 {
@@ -140,15 +140,15 @@ int main(int argc, char** argv) {
 
 	// Start the planner test with different epsilons.
 	cout << "Planning from " << from << " to " << to << endl;
-	for (float i = 0.05; i <= 1; i+=0.05) {
+	for (float epsi = 0.05; epsi <= 1; epsi+=0.05) {
 		// Make new planner with the new epsilon
-		QToQPlanner::Ptr planner = RRTPlanner::makeQToQPlanner(constraint, sampler, metric, i, RRTPlanner::RRTConnect);
-		cout << "\nTest epsilon: " << i << endl;
-		test_file.open("./../data/"+to_string(i)+"_eps.txt");
+		QToQPlanner::Ptr planner = RRTPlanner::makeQToQPlanner(constraint, sampler, metric, epsi, RRTPlanner::RRTConnect);
+		cout << "\nTest epsilon: " << epsi << endl;
+		test_file.open("./../data/"+to_string(epsi)+"_eps.txt");
 		test_file << "length\tconfig\ttime\n";
 
-		// Run the test 100 times for the given epsilon
-		for (int j = 1; j <= 100; j++)
+		// Run the test 100 times for the given epsilon (num of samples)
+		for (int j = 1; j <= 50; j++)
 		{
 			cout << j << endl;
 
@@ -162,13 +162,14 @@ int main(int argc, char** argv) {
 			result_config = analysis.analyzeJointSpace(path, metric_config);
 
 			// If the time is over the allowed time, then write NaN in the test file.
+			// If the path is in collision, then write NaN in the test file.
 			// Else write the actual results to the test file.
-			if (t.getTime() >= MAXTIME || path_collision(device, state, detector, path)) {
-				test_file << "NaN" << "\t" << "NaN" << "\t" << t.getTime() << "\n";
+			if (t.getTimeMs() >= MAXTIME) {
+				test_file << "NaN" << "\t" << "NaN" << "\t" << t.getTimeMs() << "\n";
 			}
 			else
 			{
-				test_file << result_cartesian.length << "\t" << result_config.length << "\t" << t.getTime() << "\n";
+				test_file << result_cartesian.length << "\t" << result_config.length << "\t" << t.getTimeMs() << "\n";
 				if (result_cartesian.length > 0 && result_cartesian.length < shortest_length) {
 					shortest_length = result_cartesian.length;
 					shortest_path = path;

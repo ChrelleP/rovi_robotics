@@ -3,7 +3,7 @@
 clc; clear;
 
 % Variables used for loading data
-basename = '.000000_eps.txt';
+basename = '0000_eps.txt';
 folder = './data/';
 delim = '\t';
 header = 1;
@@ -13,7 +13,7 @@ length_matrix = [];
 config_matrix = [];
 time_matrix = [];
 
-for i = 3:1:10
+for i = 0.05:0.05:0.95
     % Generate filename and load data
     sample = num2str(i);
     filename = strcat(folder, sample, basename);
@@ -65,7 +65,7 @@ for i = 1:length(CI_time)
     err_time(i)  = (1.96)*(sqrt(sigma_time(i)));  
 end
 
-y = 3:1:10;
+y = 0.05:0.05:0.95;
 subplot(3,1,1)
  plot(y, mu_length); hold on;
  errorbar(y, mu_length, err_length, '.')
