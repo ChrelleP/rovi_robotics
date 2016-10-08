@@ -18,7 +18,7 @@ using namespace rw::trajectory;
 using namespace rwlibs::pathplanners;
 using namespace rwlibs::proximitystrategies;
 
-#define MAXTIME 30.
+#define MAXTIME 120.
 
 void makeLuaFile(QPath &path)
 {
@@ -126,13 +126,13 @@ int main(int argc, char** argv) {
 	float shortest_length = 999;
 	ofstream test_file;
 
-	for (float i = 0.01; i <= 0.2; i+=0.05) {
+	for (float i = 0.05; i <= 1; i+=0.05) {
 		QToQPlanner::Ptr planner = RRTPlanner::makeQToQPlanner(constraint, sampler, metric, i, RRTPlanner::RRTConnect);
 		cout << "\nTest epsilon: " << i << endl;
 		test_file.open("./../data/"+to_string(i)+"_eps.txt");
 		test_file << "length\tconfig\ttime\n";
 
-		for (int j = 1; j <= 40; j++)
+		for (int j = 1; j <= 100; j++)
 		{
 			cout << j << endl;
 			t.resetAndResume();
@@ -141,7 +141,7 @@ int main(int argc, char** argv) {
 			result_cartesian = analysis.analyzeCartesian(path, TCP);
 			result_config = analysis.analyzeJointSpace(path, metric_config);
 			if (t.getTime() >= MAXTIME) {
-				test_file << "NaN" << "\t" << t.getTime() << "\n";
+				test_file << "NaN" << "\t" << "NaN" << "\t" << t.getTime() << "\n";
 			}
 			else
 			{

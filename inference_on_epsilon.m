@@ -3,7 +3,7 @@
 clc; clear;
 
 % Variables used for loading data
-basename = '0000_eps.txt';
+basename = '.000000_eps.txt';
 folder = './data/';
 delim = '\t';
 header = 1;
@@ -13,7 +13,7 @@ length_matrix = [];
 config_matrix = [];
 time_matrix = [];
 
-for i=0.01:0.01:0.19
+for i = 3:1:10
     % Generate filename and load data
     sample = num2str(i);
     filename = strcat(folder, sample, basename);
@@ -65,26 +65,29 @@ for i = 1:length(CI_time)
     err_time(i)  = (1.96)*(sqrt(sigma_time(i)));  
 end
 
-y = 0.01:0.01:0.19;
+y = 3:1:10;
 subplot(3,1,1)
- bar(y, mu_length,'facecolor',[.8 .8 .8]); hold on;
+ plot(y, mu_length); hold on;
  errorbar(y, mu_length, err_length, '.')
  title('Comparison of means for euclidean lengths');
  xlabel('Epsilon')
  ylabel('Length')
 subplot(3,1,2)
- bar(y, mu_config,'facecolor',[.8 .8 .8]); hold on;
+ plot(y, mu_config); hold on;
  errorbar(y, mu_config, err_config, '.');
  title('Comparison of means for summed joint movement');
  xlabel('Epsilon')
  ylabel('Summed Joint Movement')
 subplot(3,1,3)
- bar(y, mu_time,'facecolor',[.8 .8 .8]); hold on;
+ plot(y, mu_time); hold on;
  errorbar(y, mu_time, err_time, '.');
  title('Comparison of means for execution time');
  xlabel('Epsilon')
  ylabel('Time')
 
+figure(2)
+ qqplot(length_matrix(4,:))
+
 
 % Clear variables for clearer view
-clearvars basename data file_data filename folder header i delim sample y;
+clearvars basename data file_data filename folder header i delim sample;
