@@ -148,7 +148,7 @@ int main(int argc, char** argv) {
 		test_file << "length\tconfig\ttime\n";
 
 		// Run the test 100 times for the given epsilon (num of samples)
-		for (int j = 1; j <= 50; j++)
+		for (int j = 1; j <= 75; j++)
 		{
 			cout << j << endl;
 
